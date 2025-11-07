@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Vehicles | SharingYatra</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ... [Your existing CSS] ... */
+        :root {
+            --primary-color: #ff6b4a;
+            --secondary-color: #2c3e50;
+            --dark-gray: #555;
+            --bg-light: #f7f8fc;
+            --text-dark: #333;
+            --text-light: #667;
+            --white: #ffffff;
+            --border-color: #dfe6f0;
+            --success: #28a745;
+            --danger: #dc3545;
+            --info: #007bff;
+            --warning: #ffc107;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            background: var(--bg-light);
+        }
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: var(--secondary-color);
+            padding: 30px 20px;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        .sidebar h2 { 
+            color: var(--primary-color); 
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 35px;
+            padding-left: 5px;
+        }
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.6rem;
+            cursor: pointer;
+        }
+        .sidebar-links {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .sidebar-links nav {
+            flex: 1;
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+            text-decoration: none;
+            padding: 12px 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .sidebar a i { width: 20px; text-align: center; }
+        .sidebar a:hover,
+        .sidebar a.active {
+            color: var(--white);
+            background: var(--primary-color);
+        }
+        .sidebar a.logout {
+            margin-top: 20px;
+        }
+        .main { flex: 1; padding: 30px; margin-left: 250px; }
+        h1 { 
+            margin-bottom: 25px; 
+            color: var(--secondary-color);
+            font-size: 2.5rem;
+        }
+        .table-container { 
+            background: var(--white); 
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden; 
+            border: 1px solid var(--border-color);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 20px; text-align: left; }
+        th { 
+            background-color: #fafbfc;
+            color: var(--text-light);
+            font-weight: 600; 
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        tr { border-bottom: 1px solid var(--border-color); }
+        tr:last-child { border-bottom: none; }
+        td {
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+        td.actions-cell { display: flex; gap: 10px; align-items: center; }
+        .action-btn { 
+            padding: 8px 12px; 
+            border: none; 
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer; 
+            color: var(--white); 
+            transition: all 0.3s ease; 
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-btn:hover { opacity: 0.85; }
+        .edit-btn { background-color: var(--warning); color: var(--text-dark); }
+        .delete-btn { background-color: var(--danger); }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-info {
+            color: #004085;
+            background-color: #cce5ff;
+            border: 1px solid #b8daff;
+        }
+        .alert-info a { color: #004085; font-weight: 600; }
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5);
+            z-index: 100; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            backdrop-filter: blur(2px);
+        }
+        .modal-content { 
+            background: var(--white); 
+            padding: 30px; 
+            border-radius: 12px;
+            width: 90%; 
+            max-width: 500px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2); 
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h2 { color: var(--secondary-color); margin-bottom: 20px; }
+        .modal-content .form-group { margin-bottom: 15px; }
+        .modal-content label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-dark); }
+        .modal-content input, 
+        .modal-content select {
+            width: 100%; 
+            padding: 12px;
+            border: 1px solid var(--border-color); 
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--white);
+        }
+        .modal-content input:focus,
+        .modal-content select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.2);
+        }
+        .modal-actions { margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-cancel { background: #6c757d; }
+        
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                height: 60px;
+                position: sticky;
+                top: 0;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+            }
+            .sidebar h2 { margin-bottom: 0; font-size: 20px; }
+            .menu-toggle { display: block; }
+            .sidebar-links {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 250px;
+                height: calc(100vh - 60px);
+                background: var(--secondary-color);
+                padding: 20px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                display: flex;
+                flex-direction: column;
+            }
+            .sidebar-links.open { transform: translateX(0); }
+            .sidebar-links nav { flex: 1; }
+            .sidebar a { margin-bottom: 8px; }
+            .sidebar a.logout { margin-top: 20px; margin-left: 0; }
+            .main { margin-left: 0; padding: 20px; }
+            h1 { font-size: 1.8rem; }
+            .table-container {
+                overflow-x: auto;
+            }
+            table {
+                min-width: 1000px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>SharingYatra</h2>
+    <button id="menu-toggle" class="menu-toggle">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="sidebar-links">
+        <nav>
+            <a href="/manageBooking"><i class="fa-solid fa-calendar-check"></i> Manage Bookings</a>
+            <a href="/approvedRides"><i class="fa-solid fa-check-double"></i> Approved Bookings</a>
+            <a href="/addDriver"><i class="fa-solid fa-user-plus"></i> Add Drivers</a>
+            <a href="/viewDriver"><i class="fa-solid fa-users"></i> View Drivers</a>
+            <a href="/addVehicles"><i class="fa-solid fa-car"></i> Add Vehicles</a>
+            <a href="/viewVehicles" class="active"><i class="fa-solid fa-car-side"></i> View Vehicles</a>
+            <a href="/earning"><i class="fa-solid fa-chart-line"></i> Earnings</a>
+            <a href="/dashboard"><i class="fa-solid fa-user-circle"></i> Profile</a>
+        </nav>
+        <a href="/logout" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </div>
+</div>
+<div class="main">
+    <h1>View All Vehicles</h1>
+
+    <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <% if (vehicles.length === 0 && !error) { %>
+        <div class="alert alert-info">No vehicles found. Please <a href="/addVehicles">add a vehicle</a> to your agency.</div>
+    <% } else { %>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vehicle Name</th>
+                        <th>Model</th>
+                        <th>Number Plate</th>
+                        <th>RC No</th>
+                        <th>Insurance No</th>
+                        <th>AC Type</th>
+                        <th>Type</th>
+                        <th>Capacity</th>
+                        <th>Rate/km</th>
+                        <th>Owner</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% vehicles.forEach(vehicle => { %>
+                        <tr>
+                            <td><%= vehicle.vehicle_name %></td>
+                            <td><%= vehicle.model %></td>
+                            <td><%= vehicle.number_plate %></td>
+                            <td><%= vehicle.rc_number %></td>
+                            <td><%= vehicle.insurance_number %></td>
+                            <td><%= vehicle.ac_type %></td>
+                            <td><%= vehicle.vehicle_type %></td>
+                            <td><%= vehicle.max_capacity %></td>
+                            <td>₹<%= vehicle.rate_per_km %></td>
+                            <td><%= vehicle.owner_name %></td>
+                            <td class="actions-cell">
+                                <button 
+                                    class="action-btn edit-btn" 
+                                    title="Edit"
+                                    data-id="<%= vehicle._id %>"
+                                    data-name="<%= vehicle.vehicle_name %>"
+                                    data-model="<%= vehicle.model %>"
+                                    data-plate="<%= vehicle.number_plate %>"
+                                    data-rc="<%= vehicle.rc_number %>"
+                                    data-insurance="<%= vehicle.insurance_number %>"
+                                    data-owner="<%= vehicle.owner_name %>"
+                                    data-ac="<%= vehicle.ac_type %>"
+                                    data-type="<%= vehicle.vehicle_type %>"
+                                    data-capacity="<%= vehicle.max_capacity %>"
+                                    data-rate="<%= vehicle.rate_per_km %>"
+                                >
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                                <button 
+                                    class="action-btn delete-btn" 
+                                    title="Delete" 
+                                    data-id="<%= vehicle._id %>"
+                                >
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    <% } %>
+</div>
+
+<div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>Edit Vehicle</h2>
+        <form id="editForm" action="/editVehicle" method="POST">
+            
+            <input type="hidden" id="editVehicleId" name="vehicleID">
+            
+            <div class="form-group">
+                <label for="editName">Vehicle Name</label>
+                <input type="text" id="editName" name="vehicle_name" required>
+            </div>
+            <div class="form-group">
+                <label for="editModel">Model</label>
+                <input type="text" id="editModel" name="model" required>
+            </div>
+            <div class="form-group">
+                <label for="editPlate">Number Plate</label>
+                <input type="text" id="editPlate" name="number_plate" required>
+            </div>
+            <div class="form-group">
+                <label for="editRC">RC Number</label>
+                <input type="text" id="editRC" name="rc_number" required>
+            </div>
+            <div class="form-group">
+                <label for="editInsurance">Insurance Number</label>
+                <input type="text" id="editInsurance" name="insurance_number" required>
+            </div>
+            <div class="form-group">
+                <label for="editOwner">Owner Name</label>
+                <input type="text" id="editOwner" name="owner_name" required>
+            </div>
+            <div class="form-group">
+                <label for="editAC">AC Type</label>
+                <select id="editAC" name="ac_type" required>
+                    <option value="AC">AC</option>
+                    <option value="Non-AC">Non-AC</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editType">Vehicle Type</label>
+                <select id="editType" name="vehicle_type" required>
+                    <option value="Premium">Premium</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Sedan">Sedan</option>
+                    <option value="SUV">SUV</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editCapacity">Capacity</label>
+                <select id="editCapacity" name="max_capacity" required>
+                    <option value="4">4</option>
+                    <option value="6">6</option>
+                    <option value="8">8</option>
+                    <option value="12">12</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editRate">Rate per KM</label>
+                <select id="editRate" name="rate_per_km" required>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="action-btn btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+                <button type="submit" class="action-btn edit-btn" style="color: white; background-color: var(--success);">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>Confirm Deletion</h2>
+        <p>Are you sure you want to permanently delete this vehicle? This action cannot be undone.</p>
+        <form id="deleteForm" action="/deleteVehicle" method="POST">
+            
+            <input type="hidden" id="deleteVehicleId" name="vehicleID">
+            
+            <div class="modal-actions">
+                <button type="button" class="action-btn btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+                <button type="submit" class="action-btn delete-btn">Delete</button>
+            </div>
+        </form>
+    </div>
+</div> 
+
+<script>
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+}
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+// Define the base (Non-AC) rates
+const baseRates = {
+    'Premium': [12, 15, 17, 22],
+    'Normal':  [4, 6, 8, 10, 12],
+    'Sedan':   [8, 10, 13, 16],
+    'SUV':     [15, 17, 19, 22, 25]
+};
+
+// Define the AC upcharge
+const acSurcharge = 3;
+
+// Updated populateRates function
+function populateRates(vehicleType, acType, rateSelectElement, currentRate) {
+    rateSelectElement.innerHTML = ''; // Clear existing options
+    
+    // Check if the vehicle type exists in our base rates
+    if (!baseRates[vehicleType]) {
+        // Fallback for an unknown vehicle type
+        const option = document.createElement('option');
+        option.value = currentRate || '0';
+        option.textContent = `₹${currentRate || '0'}`;
+        option.selected = true;
+        rateSelectElement.appendChild(option);
+        return;
+    }
+
+    // Get the base rate array (e.g., [12, 15, 17, 22])
+    const base = baseRates[vehicleType];
+    
+    // Create the final rates array
+    // If acType is 'AC', add the surcharge to each rate.
+    // Otherwise, just use the base rates.
+    const finalRates = (acType === 'AC') 
+        ? base.map(rate => rate + acSurcharge) 
+        : base;
+
+    // Build the <option> elements
+    finalRates.forEach(rate => {
+        const option = document.createElement('option');
+        option.value = rate;
+        option.textContent = `₹${rate}`;
+        if (rate.toString() === currentRate) {
+            option.selected = true;
+        }
+        rateSelectElement.appendChild(option);
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- Sidebar Toggle Functionality ---
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+        document.querySelector('.sidebar-links').classList.toggle('open');
+    });
+
+    // --- Modal Functionality ---
+    const editVehicleTypeSelect = document.getElementById('editType');
+    const editACTypeSelect = document.getElementById('editAC'); // Get AC select
+    const editRateSelect = document.getElementById('editRate');
+
+    // Function to update rates based on *both* dropdowns
+    function updateRates() {
+        const selectedType = editVehicleTypeSelect.value;
+        const selectedAC = editACTypeSelect.value;
+        // Get the rate that's *currently* selected to try and preserve it
+        const currentSelectedRate = editRateSelect.value; 
+        populateRates(selectedType, selectedAC, editRateSelect, currentSelectedRate);
+    }
+
+    // Add event listeners to *both* dropdowns
+    editVehicleTypeSelect.addEventListener('change', updateRates);
+    editACTypeSelect.addEventListener('change', updateRates);
+
+    // Edit Modal
+    document.querySelectorAll('tbody .edit-btn').forEach(btn => { // Made selector more specific
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!btn.dataset.id) return;
+
+            document.getElementById('editVehicleId').value = btn.dataset.id;
+            document.getElementById('editName').value = btn.dataset.name;
+            document.getElementById('editModel').value = btn.dataset.model;
+            document.getElementById('editPlate').value = btn.dataset.plate;
+            document.getElementById('editRC').value = btn.dataset.rc;
+            document.getElementById('editInsurance').value = btn.dataset.insurance;
+            document.getElementById('editOwner').value = btn.dataset.owner;
+            
+            // Set dropdown values
+            document.getElementById('editAC').value = btn.dataset.ac;
+            document.getElementById('editType').value = btn.dataset.type;
+            document.getElementById('editCapacity').value = btn.dataset.capacity;
+            
+            // Populate and set the rate dropdown
+            // Get the current values *from the button*
+            const currentType = btn.dataset.type;
+            const currentAC = btn.dataset.ac;
+            const currentRate = btn.dataset.rate;
+            
+            // Call populateRates with all correct info
+            populateRates(currentType, currentAC, editRateSelect, currentRate);
+            
+            openModal('editModal');
+        });
+    });
+
+    // Delete Modal
+    document.querySelectorAll('tbody .delete-btn').forEach(btn => { // Made selector more specific
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!btn.dataset.id) return;
+            
+            document.getElementById('deleteVehicleId').value = btn.dataset.id;
+            openModal('deleteModal');
+        });
+    });
+
+    // Close on overlay click
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            closeModal('editModal');
+            closeModal('deleteModal');
+        }
+    }
+});
+</script>
+</body>
+</html>

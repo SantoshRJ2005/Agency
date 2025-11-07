@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agency Login | SharingYatra</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- Global Styles --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f8fa; /* Light grey background from dashboard */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* --- Text Logo (Above Card) --- */
+        .brand-logo {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .logo-blue {
+            color: #1e3a8a; 
+        }
+        .logo-orange {
+            color: #FF6B6B; /* Orange accent */
+        }
+
+        /* --- Login Card --- */
+        .login-container {
+            background-color: #ffffff;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); /* Softer, deeper shadow */
+            width: 100%;
+            max-width: 420px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* --- Icon Inside Card --- */
+        .card-icon-container {
+            margin-bottom: 1.5rem;
+        }
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            fill: #FF6B6B; /* Brand orange */
+        }
+
+        .login-container h2 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        /* --- EJS Error Message Styling --- */
+        .error-message {
+            color: #D9534F; /* Error red */
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            /* No background, just text */
+        }
+        /* Hide the container if it's empty */
+        .error-message:empty {
+            margin: 0;
+        }
+
+        /* --- Floating Label Form --- */
+        .form-group {
+            position: relative; /* Key for floating label */
+            margin-bottom: 2.25rem;
+            text-align: left;
+        }
+
+        .form-input {
+            width: 100%;
+            border: 0;
+            border-bottom: 2px solid #ddd; /* Underline style */
+            padding: 10px 0;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            background: transparent;
+            outline: 0;
+            color: #333;
+            position: relative;
+            z-index: 1; /* Ensures input is "above" label for click */
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-label {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            color: #999;
+            font-size: 1rem;
+            pointer-events: none; /* Lets clicks pass through to the input */
+            transition: all 0.2s ease;
+            z-index: 0;
+        }
+
+        /* The magic: When input is focused or has text, move label */
+        .form-input:focus + .form-label,
+        .form-input:not(:placeholder-shown) + .form-label {
+            top: -20px;
+            font-size: 0.85rem;
+            color: #FF6B6B; /* Brand orange */
+        }
+
+        /* Highlight border on focus */
+        .form-input:focus {
+            border-bottom-color: #FF6B6B;
+        }
+        
+        /* Required for :not(:placeholder-shown) to work */
+        .form-input::placeholder {
+            color: transparent;
+        }
+
+        /* --- Button Styling --- */
+        .login-btn {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 6px;
+            background-color: #FF6B6B; /* Primary orange */
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .login-btn:hover {
+            background-color: #e65a5a; /* Darker orange */
+            box-shadow: 0 4px 15px -5px rgba(255, 107, 107, 0.7); /* Subtle glow */
+        }
+
+        /* --- Signup Link --- */
+        .signup-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .signup-link a {
+            color: #FF6B6B; 
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1 class="brand-logo">
+        <span class="logo-blue">Sharing</span><span class="logo-orange">Yatra</span>
+    </h1>
+
+    <div class="login-container">
+        
+        <div class="card-icon-container">
+            <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+        </div>
+
+        <h2>Agency Login</h2>
+        
+        <div class="error-message">
+            <% if (typeof message !== 'undefined' && message) { %>
+                <%= message %>
+            <% } %>
+        </div>
+
+
+        <form action='/login' method='POST'>
+            
+            <div class="form-group">
+                <input type='email' id="email" name='email' class="form-input" placeholder=" " required>
+                <label for="email" class="form-label">Email</label>
+            </div>
+            
+            <div class="form-group">
+                <input type='password' id="password" name='password' class="form-input" placeholder=" " required>
+                <label for="password" class="form-label">Password</label>
+            </div>
+            
+            <button type='submit' class="login-btn">Login</button>
+        </form>
+
+        <p class="signup-link">
+            Don't have an account? <a href='/signup'>Sign Up</a>
+        </p>
+         <p class="signup-link">
+           Forget Password <a href='/forgetPassword'>Forget Password</a>
+        </p>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agency Dashboard | SharingYatra</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+    :root {
+        --primary-color: #ff6b4a;
+        --secondary-color: #2c3e50;
+        --light-gray: #f4f7f6;
+        --dark-gray: #555;
+        --white: #ffffff;
+        --border-color: #e0e0e0;
+        --success: #28a745;
+        --danger: #dc3545;
+        --password-btn-color: #3498db; /* Blue for Change Password */
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { display: flex; background: var(--light-gray); }
+
+    /* --- Sidebar (Desktop) --- */
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        background: var(--secondary-color);
+        padding: 30px 20px;
+        color: white;
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+    }
+    .sidebar h2 { color: var(--primary-color); font-size: 24px; margin-bottom: 30px; }
+    
+    .menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--white);
+        font-size: 1.6rem;
+        cursor: pointer;
+    }
+
+    .sidebar-links {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+    
+    .sidebar-links nav {
+        flex: 1;
+    }
+
+    .sidebar a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        text-decoration: none;
+        padding: 12px 10px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    .sidebar a:hover, .sidebar a.active {
+        color: var(--white);
+        background: var(--primary-color);
+    }
+
+    .sidebar a.logout {
+        margin-top: 20px;
+    }
+
+    /* --- Main Content (Desktop) --- */
+    .main { flex: 1; padding: 30px; margin-left: 250px; }
+    h1 { margin-bottom: 25px; color: var(--secondary-color); font-size: 2rem; }
+
+    /* --- Profile Card Styles --- */
+    .profile-card {
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        max-width: 900px;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 25px 30px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .header-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        background-color: #fff0ec;
+        padding: 15px;
+        border-radius: 50%;
+    }
+    .header-text h2 {
+        color: var(--secondary-color);
+        font-size: 1.5rem;
+        margin: 0;
+    }
+    .header-text p {
+        color: var(--dark-gray);
+        margin: 0;
+    }
+    
+    /* NEW: Button Container */
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .edit-profile-btn {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        color: var(--white);
+    }
+    /* Style for Edit button */
+    .edit-profile-btn#openEditModal {
+        background-color: var(--primary-color);
+    }
+    .edit-profile-btn#openEditModal:hover {
+        background-color: #e65a3c;
+    }
+    /* Style for Change Password button */
+    .edit-profile-btn#openPasswordModal {
+        background-color: var(--password-btn-color);
+    }
+    .edit-profile-btn#openPasswordModal:hover {
+        background-color: #2980b9; 
+    }
+    .edit-profile-btn i {
+        margin-right: 6px;
+    }
+
+
+    .profile-body {
+        padding: 30px;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    .detail-item .icon {
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        margin-top: 3px;
+        width: 20px;
+        text-align: center;
+    }
+    .detail-item .text .label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+    }
+    .detail-item .text .value {
+        color: var(--dark-gray);
+    }
+    .document-link {
+        color: var(--primary-color); 
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .document-link:hover { text-decoration: underline; }
+    
+    /* =========================================
+        MODAL STYLES (Applies to both)
+    =========================================
+    */
+    .modal-overlay { 
+        position: fixed; 
+        top: 0; left: 0; 
+        width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.5); 
+        z-index: 1001;
+        display: none; 
+        align-items: center; 
+        justify-content: center; 
+        backdrop-filter: blur(2px);
+    }
+    .modal-content { 
+        background: var(--white); 
+        padding: 30px; 
+        border-radius: 12px; 
+        width: 90%; 
+        max-width: 600px; 
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2); 
+    }
+    .modal-content h2 { 
+        color: var(--secondary-color); 
+        margin-bottom: 25px; 
+        font-size: 1.6rem;
+    }
+    
+    .modal-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .modal-content .form-group { 
+        margin-bottom: 0;
+    }
+    .modal-content .full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .modal-content label { 
+        display: block; 
+        margin-bottom: 5px; 
+        font-weight: 600; 
+        color: var(--secondary-color); 
+    }
+    .modal-content input { 
+        width: 100%; 
+        padding: 12px; 
+        border: 1px solid var(--border-color); 
+        border-radius: 8px; 
+        font-size: 1rem;
+    }
+    .modal-content input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.2);
+    }
+    
+    .modal-content input[readonly] {
+        background-color: var(--light-gray);
+        color: var(--dark-gray);
+        cursor: not-allowed;
+    }
+    .modal-content input[readonly]:focus {
+        border-color: var(--border-color);
+        box-shadow: none;
+    }
+    
+    .modal-actions { 
+        margin-top: 30px; 
+        display: flex; 
+        justify-content: flex-end; 
+        gap: 10px; 
+    }
+    .modal-btn {
+        padding: 10px 16px; 
+        border: none; 
+        border-radius: 6px; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.3s ease; 
+        font-size: 0.95rem;
+    }
+    .btn-cancel { 
+        background: #6c757d; 
+        color: white;
+    }
+    .btn-cancel:hover { background: #5a6268; }
+    
+    .btn-save { 
+        background: var(--success); 
+        color: white;
+    }
+    .btn-save:hover { background: #218838; }
+
+
+    /* =========================================
+        RESPONSIVE CODE 
+    =========================================
+    */
+
+    @media (max-width: 900px) {
+        .details-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+        body { flex-direction: column; }
+        .sidebar {
+            width: 100%; height: 60px; position: sticky; top: 0;
+            flex-direction: row; align-items: center;
+            justify-content: space-between; padding: 0 20px; 
+        }
+        .sidebar h2 { margin-bottom: 0; font-size: 20px; }
+        .menu-toggle { display: block; }
+        .sidebar-links {
+            position: fixed; top: 60px; left: 0;
+            width: 250px; height: calc(100vh - 60px);
+            background: var(--secondary-color); padding: 20px;
+            transform: translateX(-100%); transition: transform 0.3s ease-in-out;
+            display: flex; flex-direction: column;
+        }
+        .sidebar-links.open { transform: translateX(0); }
+        .sidebar-links nav { flex: 1; }
+        .sidebar a { margin-bottom: 8px; }
+        .sidebar a.logout { margin-top: 20px; margin-left: 0; }
+        .main { margin-left: 0; padding: 20px; }
+        h1 { font-size: 1.8rem; }
+        
+        /* Mobile Profile Header Adjustments */
+        .profile-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        /* Stack buttons vertically on small screens */
+        .header-actions {
+            flex-direction: column;
+            width: 100%; /* Make actions take full width below header text */
+            margin-top: 15px;
+        }
+        .header-actions .edit-profile-btn {
+            width: 100%;
+        }
+        
+        .modal-form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>SharingYatra</h2>
+
+    <button id="menu-toggle" class="menu-toggle">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="sidebar-links">
+        <nav>
+           <a href="/manageBooking"><i class="fa-solid fa-calendar-check"></i> Manage Bookings</a>
+           <a href="/approvedRides"><i class="fa-solid fa-check-double"></i> Approved</a>
+           <a href="/addDriver"><i class="fa-solid fa-user-plus"></i> Add Drivers</a>
+           <a href="/viewDriver"><i class="fa-solid fa-users"></i> View Drivers</a>
+           <a href="/addVehicles"><i class="fa-solid fa-car"></i> Add Vehicles</a>
+           <a href="/viewVehicles"><i class="fa-solid fa-car-side"></i> View Vehicles</a>
+           <a href="/earning" ><i class="fa-solid fa-chart-line"></i> Earnings</a>
+           <a href="/dashboard" class="active"><i class="fa-solid fa-user-circle"></i> Profile</a>
+        </nav>
+        <a href="/logout" class="logout"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    </div>
+</div>
+
+<div class="main">
+    <h1>Agency Dashboard</h1>
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="header-left">
+                <i class="fa-solid fa-building header-icon"></i>
+                <div class="header-text">
+                    <h2><%= agency.agencyName %></h2>
+                    <p>Welcome to your agency profile dashboard.</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                 <button class="edit-profile-btn" id="openEditModal">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+                </button>
+                <button class="edit-profile-btn" id="openPasswordModal">
+                    <i class="fa-solid fa-key"></i> Change Password
+                </button>
+            </div>
+            
+        </div>
+
+        <div class="profile-body">
+            <div class="details-grid">
+                <div class="detail-item">
+                    <i class="fa-solid fa-user-tie icon"></i>
+                    <div class="text">
+                        <span class="label">Owner Name</span>
+                        <span class="value"><%= agency.ownerName %></span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-envelope icon"></i>
+                    <div class="text">
+                        <span class="label">Email Address</span>
+                        <span class="value"><%= agency.agencyEmail %></span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-phone icon"></i>
+                    <div class="text">
+                        <span class="label">Mobile Number</span>
+                        <span class="value"><%= agency.agencyMobile %></span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-map-marker-alt icon"></i>
+                    <div class="text">
+                        <span class="label">Operating Station</span>
+                        <span class="value"><%= agency.oprateStation %></span>
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <i class="fa-solid fa-id-card icon"></i>
+                    <div class="text">
+                        <span class="label">Agency License No.</span>
+                        <span class="value"><%= agency.agencyLicense %></span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-file-invoice-dollar icon"></i>
+                    <div class="text">
+                        <span class="label">GST Number</span>
+                        <span class="value"><%= agency.gstNumber %></span>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-address-card icon"></i>
+                    <div class="text">
+                        <span class="label">PAN Number</span>
+                        <span class="value"><%= agency.panNumber %></span>
+                    </div>
+                </div>
+
+
+                   <div class="detail-item">
+                    <i class="fa-solid fa-address-card icon"></i>
+                    <div class="text">
+                        <span class="label">Profile Created </span>
+                        <span class="value"><%= new Date(agency.createdAt).toLocaleDateString('en-IN') %></span>
+                    </div>
+                </div>
+                        
+                <div class="detail-item">
+                    <i class="fa-solid fa-file-alt icon"></i>
+                    <div class="text">
+                        <span class="label">Gumasta License</span>
+                        <span class="value">
+                            
+                            <% if (agency.gumastaLicenseUrl) { %>
+                                <a href="<%= agency.gumastaLicenseUrl %>" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer" 
+                                   class="document-link">
+                                   
+                                   View Document <i class="fa-solid fa-external-link-alt fa-xs"></i>
+                                </a>
+                            <% } else { %>
+                                Not Provided
+                            <% } %>
+                            
+                        </span>
+                    </div>
+                </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+<div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>Edit Agency Profile</h2>
+        
+        <form id="editForm" action="/edit-agency" method="POST">
+            <div class="modal-form-grid">
+                
+                <div class="form-group full-width">
+                    <label for="editAgencyName">Agency Name</label>
+                    <input type="text" id="editAgencyName" name="agencyName" value="<%= agency.agencyName %>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editOwnerName">Owner Name</label>
+                    <input type="text" id="editOwnerName" name="ownerName" value="<%= agency.ownerName %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editAgencyMobile">Mobile Number</label>
+                    <input type="tel" id="editAgencyMobile" name="agencyMobile" value="<%= agency.agencyMobile %>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editOprateStation">Operating Station</label>
+                    <input type="text" id="editOprateStation" name="oprateStation" value="<%= agency.oprateStation %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editAgencyEmail">Email Address (Locked)</label>
+                    <input type="email" id="editAgencyEmail" name="agencyEmail" value="<%= agency.agencyEmail %>" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editAgencyLicense">Agency License (Locked)</label>
+                    <input type="text" id="editAgencyLicense" name="agencyLicense" value="<%= agency.agencyLicense %>" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="editGstNumber">GST Number (Locked)</label>
+                    <input type="text" id="editGstNumber" name="gstNumber" value="<%= agency.gstNumber %>" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPanNumber">PAN Number (Locked)</label>
+                    <input type="text" id="editPanNumber" name="panNumber" value="<%= agency.panNumber %>" readonly>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="modal-btn btn-cancel" id="closeEditModal">Cancel</button>
+                <button type="submit" class="modal-btn btn-save">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="passwordModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>Change Password</h2>
+        <form id="passwordForm" action="/change-password" method="POST">
+            <div class="modal-form-grid">
+                
+                <div class="form-group full-width">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" name="currentPassword" required>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="newPassword" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="confirmNewPassword">Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" required>
+                </div>
+                
+                <div class="form-group full-width" id="passwordMessageContainer" style="font-weight: 600;">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="modal-btn btn-cancel" id="closePasswordModal">Cancel</button>
+                <button type="submit" class="modal-btn btn-save">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Sidebar Toggle Functionality ---
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            document.querySelector('.sidebar-links').classList.toggle('open');
+        });
+
+        // --- Edit Profile Modal Functionality ---
+        const editModal = document.getElementById('editModal');
+        const openEditBtn = document.getElementById('openEditModal');
+        const closeEditBtn = document.getElementById('closeEditModal');
+
+        function openEditModal() {
+            if (editModal) editModal.style.display = 'flex';
+        }
+        function closeEditModal() {
+            if (editModal) editModal.style.display = 'none';
+        }
+
+        if (openEditBtn) {
+            openEditBtn.addEventListener('click', openEditModal);
+        }
+        if (closeEditBtn) {
+            closeEditBtn.addEventListener('click', closeEditModal);
+        }
+
+        // --- Change Password Modal Functionality ---
+        const passwordModal = document.getElementById('passwordModal');
+        const openPasswordBtn = document.getElementById('openPasswordModal'); // Targets the new button in the header
+        const closePasswordBtn = document.getElementById('closePasswordModal');
+        const passwordForm = document.getElementById('passwordForm');
+
+        function openPasswordModal() {
+            if (passwordModal) passwordModal.style.display = 'flex';
+        }
+        function closePasswordModal() {
+            if (passwordModal) {
+                passwordModal.style.display = 'none';
+                // Clear the form and message on close
+                passwordForm.reset(); 
+                document.getElementById('passwordMessageContainer').innerHTML = '';
+            }
+        }
+
+        if (openPasswordBtn) {
+            openPasswordBtn.addEventListener('click', (e) => {
+                e.preventDefault(); 
+                openPasswordModal();
+            });
+        }
+        if (closePasswordBtn) {
+            closePasswordBtn.addEventListener('click', closePasswordModal);
+        }
+
+        // Close modals on overlay click
+        window.addEventListener('click', function(event) {
+            if (event.target == editModal) {
+                closeEditModal();
+            }
+            if (event.target == passwordModal) {
+                closePasswordModal();
+            }
+        });
+        
+        // --- Password Form Submission with AJAX ---
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageContainer = document.getElementById('passwordMessageContainer');
+            messageContainer.innerHTML = '';
+            
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+            if (newPassword !== confirmNewPassword) {
+                messageContainer.style.color = 'var(--danger)';
+                messageContainer.innerHTML = 'New passwords do not match.';
+                return;
+            }
+
+            try {
+                // Serialize form data
+                const formData = new URLSearchParams(new FormData(passwordForm));
+                
+                const response = await fetch('/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageContainer.style.color = 'var(--success)';
+                    messageContainer.innerHTML = result.message || 'Password updated successfully!';
+                    setTimeout(closePasswordModal, 2000); // Close after 2 seconds
+                } else {
+                    messageContainer.style.color = 'var(--danger)';
+                    messageContainer.innerHTML = result.message || 'Error updating password.';
+                }
+
+            } catch (error) {
+                messageContainer.style.color = 'var(--danger)';
+                messageContainer.innerHTML = 'Network error. Please try again.';
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
